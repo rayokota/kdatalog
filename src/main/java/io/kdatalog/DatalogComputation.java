@@ -103,7 +103,7 @@ public class DatalogComputation extends PregelGraphAlgorithm<String, String, Str
             log.debug(">>> Received messages {}", messages);
 
             if (voteForNewRound && lastTimeNewRound) {
-                voteToHalt(vertex);
+                voteToHalt(cb, vertex);
             } else {
                 boolean voteForNextRound;
 
@@ -206,8 +206,6 @@ public class DatalogComputation extends PregelGraphAlgorithm<String, String, Str
                     }
                 }
                 setVertexValue(cb, builder.toString());
-
-                voteToContinue(vertex, cb);
             }
         }
 
@@ -257,13 +255,9 @@ public class DatalogComputation extends PregelGraphAlgorithm<String, String, Str
             cb.setNewVertexValue(value);
         }
 
-        private void voteToHalt(VertexWithValue<String, String> vertex) {
+        private void voteToHalt(Callback<String, String, String> cb, VertexWithValue<String, String> vertex) {
             log.debug(">>> Vote to halt: vertex {}", vertex.id());
-            // don't send dummy msg
-        }
-
-        private void voteToContinue(VertexWithValue<String, String> vertex, Callback<String, String, String> cb) {
-            sendMessage(cb, vertex.id(), DUMMY_MSG);
+            cb.voteToHalt();
         }
     }
 }
