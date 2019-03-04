@@ -35,8 +35,8 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.source>1.8</maven.compiler.source>
         <maven.compiler.target>1.8</maven.compiler.target>
-        <kafka.version>2.1.0</kafka.version>
-        <kafka-graphs.version>0.4.0</kafka-graphs.version>
+        <kafka.version>2.1.1</kafka.version>
+        <kafka-graphs.version>0.4.1-SNAPSHOT</kafka-graphs.version>
         <kafka.scala.version>2.12</kafka.scala.version>
         <iris.version>0.8.2-SNAPSHOT</iris.version>
     </properties>

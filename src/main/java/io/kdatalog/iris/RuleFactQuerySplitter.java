@@ -8,8 +8,6 @@ import org.deri.iris.storage.IRelation;
 
 import java.io.Reader;
 import java.io.StringReader;
-import java.util.HashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 

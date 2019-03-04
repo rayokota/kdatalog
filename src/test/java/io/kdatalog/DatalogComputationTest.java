@@ -22,6 +22,7 @@ import io.kgraph.AbstractIntegrationTest;
 import io.kgraph.GraphAlgorithm;
 import io.kgraph.GraphAlgorithmState;
 import io.kgraph.KGraph;
+import io.kgraph.pregel.PregelGraphAlgorithm;
 import io.kgraph.utils.ClientUtils;
 import io.kgraph.utils.GraphUtils;
 import io.kgraph.utils.KryoSerde;
@@ -35,8 +36,10 @@ import org.junit.Test;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Properties;
 import java.util.concurrent.CompletableFuture;
 
@@ -54,33 +57,29 @@ public class DatalogComputationTest extends AbstractIntegrationTest {
     public void testSymmetricComputation() throws Exception {
         String suffix = "dl";
         StreamsBuilder builder = new StreamsBuilder();
-        Properties producerConfig = ClientUtils.producerConfig(CLUSTER.bootstrapServers(), StringSerializer.class,
-            StringSerializer.class, new Properties()
-        );
 
         StringBuilder sb = new StringBuilder(SYMM_RULES);
         sb.append("edge('a', 'b').");
         sb.append("edge('c', 'a').");
         sb.append("edge('b', 'c').");
-
+        Properties producerConfig = ClientUtils.producerConfig(CLUSTER.bootstrapServers(), StringSerializer.class,
+            StringSerializer.class, new Properties()
+        );
         KGraph<String, String, String> graph = KDatalog.createGraph(builder, producerConfig, sb.toString());
-
-        algorithm =
-            new DatalogComputation(null, "run-" + suffix, CLUSTER.bootstrapServers(),
-                CLUSTER.zKConnectString(), "vertices-" + suffix, "edgesGroupedBySource-" + suffix, graph.serialized(),
-                "solutionSet-" + suffix, "solutionSetStore-" + suffix, "workSet-" + suffix, 2, (short) 1);
 
         Properties props = ClientUtils.streamsConfig("prepare-" + suffix, "prepare-client-" + suffix,
             CLUSTER.bootstrapServers(), graph.keySerde().getClass(), graph.vertexValueSerde().getClass());
         CompletableFuture<Void> state = GraphUtils.groupEdgesBySourceAndRepartition(builder, props, graph, "vertices-" + suffix, "edgesGroupedBySource-" + suffix, 2, (short) 1);
-
         state.get();
 
+        algorithm =
+            new PregelGraphAlgorithm<>(null, "run-" + suffix, CLUSTER.bootstrapServers(),
+                CLUSTER.zKConnectString(), "vertices-" + suffix, "edgesGroupedBySource-" + suffix, graph.serialized(),
+                "solutionSet-" + suffix, "solutionSetStore-" + suffix, "workSet-" + suffix, 2, (short) 1,
+                Collections.emptyMap(), Optional.empty(), new DatalogComputation());
         props = ClientUtils.streamsConfig("run-" + suffix, "run-client-" + suffix,
             CLUSTER.bootstrapServers(), graph.keySerde().getClass(), KryoSerde.class);
-        builder = new StreamsBuilder();
-        KafkaStreams streams = algorithm.configure(builder, props).streams();
-
+        KafkaStreams streams = algorithm.configure(new StreamsBuilder(), props).streams();
         GraphAlgorithmState<KTable<String, String>> paths = algorithm.run();
         paths.result().get();
 
@@ -103,9 +102,6 @@ public class DatalogComputationTest extends AbstractIntegrationTest {
     public void testAsymmetricComputation() throws Exception {
         String suffix = "adl";
         StreamsBuilder builder = new StreamsBuilder();
-        Properties producerConfig = ClientUtils.producerConfig(CLUSTER.bootstrapServers(), StringSerializer.class,
-            StringSerializer.class, new Properties()
-        );
 
         StringBuilder sb = new StringBuilder(ASYMM_RULES);
         sb.append("R('1', '2').");
@@ -115,25 +111,24 @@ public class DatalogComputationTest extends AbstractIntegrationTest {
         sb.append("R('3', '4').");
         sb.append("R('1', '4').");
         sb.append("R('4', '5').");
-
+        Properties producerConfig = ClientUtils.producerConfig(CLUSTER.bootstrapServers(), StringSerializer.class,
+            StringSerializer.class, new Properties()
+        );
         KGraph<String, String, String> graph = KDatalog.createGraph(builder, producerConfig, sb.toString());
-
-        algorithm =
-            new DatalogComputation(null, "run-" + suffix, CLUSTER.bootstrapServers(),
-                CLUSTER.zKConnectString(), "vertices-" + suffix, "edgesGroupedBySource-" + suffix, graph.serialized(),
-                "solutionSet-" + suffix, "solutionSetStore-" + suffix, "workSet-" + suffix, 2, (short) 1);
 
         Properties props = ClientUtils.streamsConfig("prepare-" + suffix, "prepare-client-" + suffix,
             CLUSTER.bootstrapServers(), graph.keySerde().getClass(), graph.vertexValueSerde().getClass());
         CompletableFuture<Void> state = GraphUtils.groupEdgesBySourceAndRepartition(builder, props, graph, "vertices-" + suffix, "edgesGroupedBySource-" + suffix, 2, (short) 1);
-
         state.get();
 
+        algorithm =
+            new PregelGraphAlgorithm<>(null, "run-" + suffix, CLUSTER.bootstrapServers(),
+                CLUSTER.zKConnectString(), "vertices-" + suffix, "edgesGroupedBySource-" + suffix, graph.serialized(),
+                "solutionSet-" + suffix, "solutionSetStore-" + suffix, "workSet-" + suffix, 2, (short) 1,
+                Collections.emptyMap(), Optional.empty(), new DatalogComputation());
         props = ClientUtils.streamsConfig("run-" + suffix, "run-client-" + suffix,
             CLUSTER.bootstrapServers(), graph.keySerde().getClass(), KryoSerde.class);
-        builder = new StreamsBuilder();
-        KafkaStreams streams = algorithm.configure(builder, props).streams();
-
+        KafkaStreams streams = algorithm.configure(new StreamsBuilder(), props).streams();
         GraphAlgorithmState<KTable<String, String>> paths = algorithm.run();
         paths.result().get();
 
