@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<metadata>
+    <groupId>at.sti2.iris</groupId>
+    <artifactId>iris-parser</artifactId>
+    <versioning>
+        <versions>
+            <version>0.8.2-SNAPSHOT</version>
+        </versions>
+        <lastUpdated>20180807233211</lastUpdated>
+    </versioning>
+</metadata>
