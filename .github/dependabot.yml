@@ -1,0 +1,24 @@
+version: 2
+updates:
+- package-ecosystem: maven
+  directory: "/"
+  schedule:
+    interval: daily
+  open-pull-requests-limit: 10
+  ignore:
+  - dependency-name: com.github.spotbugs:spotbugs-maven-plugin
+    versions:
+    - 4.2.0
+    - 4.2.2
+  - dependency-name: org.apache.kafka:kafka-streams:test
+    versions:
+    - 2.7.0
+  - dependency-name: org.apache.kafka:kafka-clients:test
+    versions:
+    - 2.7.0
+  - dependency-name: org.apache.kafka:kafka_2.13:test
+    versions:
+    - 2.7.0
+  - dependency-name: org.apache.kafka:kafka_2.13
+    versions:
+    - 2.7.0
